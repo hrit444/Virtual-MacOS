@@ -45,6 +45,7 @@ nav .r-nav img {
 
 .control-center {
   display: none;
+  z-index: 100000000000;
   grid-template-areas: "bc bc f f" "bc bc sm smr" "bb bb bb bb" "sb sb sb sb";
 }
 .control-center .common-box {
@@ -114,21 +115,21 @@ nav .r-nav img {
   background-color: #797979;
 }
 
-.trash-app, .finder-app {
+.finder-app {
   background-color: rgba(28, 28, 28, 0.9568627451);
 }
-.trash-app .left, .finder-app .left {
+.finder-app .left {
   background-color: rgba(70, 70, 74, 0.4549019608);
 }
-.trash-app .right .navigation i, .finder-app .right .navigation i {
+.finder-app .right .navigation i {
   font-size: 1.3vw;
   color: #a6a6a6;
 }
-.trash-app .right .navigation #filename, .finder-app .right .navigation #filename {
+.finder-app .right .navigation #filename {
   font-size: 1vw;
   font-weight: 500;
 }
-.trash-app .right .display, .finder-app .right .display {
+.finder-app .right .display {
   background-color: #1c1c1c;
 }
 

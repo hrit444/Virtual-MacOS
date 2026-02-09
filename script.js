@@ -1,3 +1,16 @@
+let appZIndexCounter = 2000;
+
+function bringAppToFront(app) {
+  app.style.zIndex = appZIndexCounter++;
+}
+
+document.addEventListener("mousedown", (e) => {
+  const app = e.target.closest("[data-app]");
+  if (app && !app.classList.contains("hidden")) {
+    bringAppToFront(app);
+  }
+});
+
 function displayContolOpener() {
   let brightness = document.querySelector("#brightness");
   let displayContainer = document.querySelector(".display-container");
@@ -189,6 +202,7 @@ function newFolder() {
     newFolderBtn.addEventListener("click", createNewFolder);
   }
 
+  const maxFolderLimit = 84;
   let folderCount = 1;
   const createdFolders = [];
 
@@ -208,6 +222,11 @@ function newFolder() {
   });
 
   function createNewFolder() {
+    if (createdFolders.length >= maxFolderLimit) {
+      alert("You can’t create more than 84 folders on the desktop.");
+      return;
+    }
+
     const folder = document.createElement("div");
     folder.className =
       "folder absolute flex flex-col justify-center items-center h-20 w-16 cursor-grab";
@@ -285,16 +304,16 @@ newFolder();
 
 function brightnessSeeker() {
   const brightnessSlider = document.querySelector(
-    ".control-center .brightness input"
+    ".control-center .brightness input",
   );
   const brightnessProgressBar = document.querySelector(
-    ".control-center .brightness progress"
+    ".control-center .brightness progress",
   );
   const displayBrightnessSlider = document.querySelector(
-    ".display-container .brightness input"
+    ".display-container .brightness input",
   );
   const displayBrightnessProgressBar = document.querySelector(
-    ".display-container .brightness progress"
+    ".display-container .brightness progress",
   );
 
   function syncBrightness(value) {
@@ -328,7 +347,7 @@ brightnessSeeker();
 function soundSeeker() {
   const soundSlider = document.querySelector(".control-center .sound input");
   const soundProgressBar = document.querySelector(
-    ".control-center .sound progress"
+    ".control-center .sound progress",
   );
   soundSlider.addEventListener("input", () => {
     soundProgressBar.value = soundSlider.value;
@@ -386,6 +405,8 @@ function dragSupport(dragElem, dragApp) {
     isDragging = true;
     offsetX = e.clientX - dragApp.offsetLeft;
     offsetY = e.clientY - dragApp.offsetTop;
+
+      bringAppToFront(cameraApp)
   });
 
   document.addEventListener("mousemove", (e) => {
@@ -409,7 +430,6 @@ function dragSupport(dragElem, dragApp) {
   });
 }
 
-
 function appBigger(app) {
   app.style.height = "100%";
   app.style.width = "100%";
@@ -417,6 +437,7 @@ function appBigger(app) {
   app.style.left = "0";
   app.style.borderRadius = "0";
   app.classList.add("fullscreen");
+  bringAppToFront(app);
 }
 
 function appResize(app) {
@@ -426,6 +447,7 @@ function appResize(app) {
   app.style.left = "10%";
   app.style.borderRadius = "1vw";
   app.classList.remove("fullscreen");
+  bringAppToFront(app);
 }
 
 function finderApplication() {
@@ -527,7 +549,7 @@ function dock() {
     const isAnyFullscreen = Array.from(allApps).some(
       (app) =>
         !app.classList.contains("hidden") &&
-        (app.style.height === "100%" || app.classList.contains("fullscreen"))
+        (app.style.height === "100%" || app.classList.contains("fullscreen")),
     );
 
     if (isAnyFullscreen) {
@@ -610,7 +632,8 @@ function updateDockState() {
 document.addEventListener("DOMContentLoaded", () => {
   finderApplication();
   codeApplication();
-  trashApplication()
+  cameraApp();
+
   dock();
 });
 
@@ -628,10 +651,10 @@ function codeApplication() {
     if (!isVisible) {
       codeApp.classList.remove("hidden");
       appResize(codeApp);
-      isVisible = 1
+      isVisible = 1;
     } else {
       codeApp.classList.add("hidden");
-      isVisible = 0
+      isVisible = 0;
     }
     // isVisible = ;
   });
@@ -643,10 +666,10 @@ function codeApplication() {
     isVisible = 0;
   });
 
-  minimiseBtn.addEventListener("click", ()=>{
+  minimiseBtn.addEventListener("click", () => {
     codeApp.classList.add("hidden");
     isVisible = 0;
-  })
+  });
 
   resizeBtn.addEventListener("click", () => {
     if (!isBig) {
@@ -658,95 +681,100 @@ function codeApplication() {
     }
   });
 
-  dragSupport(dragBar, codeApp)
+  dragSupport(dragBar, codeApp);
 }
 
-function trashApplication() {
-  const trashApp = document.getElementById("11");
-  const dock = document.getElementById("dock");
-  const closeBtn = trashApp.querySelector("#close");
-  const minimiseBtn = trashApp.querySelector("#minimise");
-  const resizeBtn = trashApp.querySelector("#resize");
-  const searchBar = trashApp.querySelector(".search-list");
-  const searchBorder = trashApp.querySelector(".sBorder");
-  const searchIcon = trashApp.querySelector(".search-icon");
+function cameraApp() {
+  const cameraApp = document.querySelector("#cameraApp");
+  const video = document.querySelector("#cameraApp #video");
+  const canvas = document.querySelector("#cameraApp #canvas");
+  // const snap = document.getElementById("snap");
 
-  let isBig = false;
-  let isVisible = false;
-  let isMinimized = false;
+  const closeBtn = document.querySelector("#cameraApp #close");
+  const minimiseBtn = document.querySelector("#cameraApp #minimise");
+  const resizeBtn = document.querySelector("#cameraApp #resize");
+  const dragBar = document.querySelector("#cameraApp .c-up-nav");
 
-  function finderResize() {
-    appResize(trashApp);
-    trashApp.querySelector(".left").style.width = "23%";
-    trashApp.querySelector(".right").style.width = "77%";
-    searchBar.style.display = "none";
-    searchBorder.style.display = "none";
-    searchIcon.style.display = "block";
-    dock.style.opacity = "1";
-    dock.style.pointerEvents = "auto";
+
+  let cameraStream = null;
+
+  function startCamera() {
+    if (cameraStream) return;
+
+    navigator.mediaDevices
+      .getUserMedia({ video: true })
+      .then((stream) => {
+        cameraStream = stream;
+        video.srcObject = stream;
+      })
+      .catch((err) => {
+        alert("Camera access denied or not available.");
+        console.error(err);
+      });
   }
 
-  resizeBtn.addEventListener("click", () => {
-    if (!isBig) {
-      appBigger(trashApp);
-      trashApp.querySelector(".left").style.width = "13%";
-      trashApp.querySelector(".right").style.width = "87%";
-      searchBar.style.display = "block";
-      searchBorder.style.display = "flex";
-      searchIcon.style.display = "none";
+  function stopCamera() {
+    if (!cameraStream) return;
+
+    cameraStream.getTracks().forEach((track) => track.stop());
+    cameraStream = null;
+    video.srcObject = null;
+  }
+
+  let isBig = 0;
+  let isVisible = 0;
+
+  document.querySelector("#camera").addEventListener("click", () => {
+    if (!isVisible) {
+      cameraApp.classList.remove("hidden");
+      appResize(cameraApp);
+      bringAppToFront(cameraApp);
+      startCamera();
+      isVisible = 1;
     } else {
-      finderResize();
+      cameraApp.classList.add("hidden");
+      stopCamera();
+      isVisible = 0;
     }
-    isBig = !isBig;
-    isMinimized = false;
     updateDockState();
   });
 
-  function toggleFinder() {
-    if (isMinimized || !isVisible) {
-      trashApp.classList.remove("hidden");
-      isVisible = true;
-      isMinimized = false;
-    } else {
-      trashApp.classList.add("hidden");
-      isVisible = false;
-      isMinimized = true;
-    }
-
-    updateDockState();
-  }
-
   closeBtn.addEventListener("click", () => {
-    trashApp.classList.add("hidden");
-    isVisible = false;
-    isMinimized = false;
-    finderResize(); // Reset to normal size
-    isBig = false;
+    cameraApp.classList.add("hidden");
+    appResize(cameraApp);
+    stopCamera();
+    isBig = 0;
+    isVisible = 0;
     updateDockState();
   });
 
   minimiseBtn.addEventListener("click", () => {
-    toggleFinder();
+    cameraApp.classList.add("hidden");
+    stopCamera();
+    isVisible = 0;
+    updateDockState();
   });
 
-  const trashDockIcon = document.getElementById("trash");
-  if (trashDockIcon) {
-    trashDockIcon.addEventListener("click", () => {
-      toggleFinder();
-    });
-  }
+  resizeBtn.addEventListener("click", () => {
+    if (!isBig) {
+      appBigger(cameraApp);
+      isBig = 1;
+    } else {
+      appResize(cameraApp);
+      isBig = 0;
+    }
+    updateDockState();
+  });
 
-  // Drag support
-  const dragBar1 = trashApp.querySelector(".right nav");
-  const dragBar2 = trashApp.querySelector(".left nav");
+  dragSupport(dragBar, cameraApp);
 
-  dragSupport(dragBar1, trashApp);
-  dragSupport(dragBar2, trashApp);
-
-  // Don't show on load
-  trashApp.classList.add("hidden");
-  isVisible = false;
-  isMinimized = false;
-  updateDockState();
+  // snap.addEventListener("click", () => {
+  //   const context = canvas.getContext("2d");
+  //   canvas.width = video.videoWidth;
+  //   canvas.height = video.videoHeight;
+  //   context.drawImage(video, 0, 0, canvas.width, canvas.height);
+  //   const imageData = canvas.toDataURL("image/png");
+  //   downloadLink.href = imageData;
+  //   downloadLink.classList.remove("hidden");
+  // });
 }
-

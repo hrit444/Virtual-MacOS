@@ -22,8 +22,11 @@ body {
   position: relative;
   overflow: hidden;
   transition: filter 0.2s ease;
-  
 }
+
+// .title{
+//   z-index: 5000;
+// }
 
 nav {
   i {
@@ -54,6 +57,7 @@ nav {
 .control-center {
   // display: grid;
   display: none;
+  z-index: 100000000000;
   grid-template-areas:
     "bc bc f f"
     "bc bc sm smr"
@@ -137,7 +141,7 @@ nav {
   }
 }
 
-.trash-app, .finder-app {
+.finder-app {
 
   background-color: #1c1c1cf4;
 
