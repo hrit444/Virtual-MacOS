@@ -65,60 +65,73 @@ function displayContolOpener() {
 
 displayContolOpener();
 
+function date() {
+  const dt = new Date();
+
+  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+
+  let day = days[dt.getDay()];
+  let month = months[dt.getMonth()];
+  let date = dt.getDate();
+
+  return { day, month, date };
+}
+
+function time() {
+  const dt = new Date();
+
+  let hours = dt.getHours();
+  let minutes = dt.getMinutes();
+  let seconds = dt.getSeconds();
+
+  let hr = 0,
+    min = 0,
+    sec = 0,
+    mer = 0;
+
+  if (hours > 12) {
+    hr = String(hours - 12).padStart("2", "0");
+    min = String(minutes).padStart("2", "0");
+    sec = String(seconds).padStart("2", "0");
+    mer = "PM";
+  } else {
+    hr = String(hours).padStart("2", "0");
+    min = String(minutes).padStart("2", "0");
+    sec = String(seconds).padStart("2", "0");
+    mer = "AM";
+  }
+
+  return { hr, min, sec, mer };
+}
+
 function clockDateTime() {
-  function time() {
-    const dt = new Date();
+  function updateClock() {
+    const currentTime = time();
+    const dt = date();
 
-    let hours = dt.getHours();
-    let minutes = dt.getMinutes();
+    document.querySelector(".time").innerHTML =
+      `${currentTime.hr}:${currentTime.min} ${currentTime.mer}`;
 
-    let hr = 0,
-      min = 0,
-      mer = 0;
-
-    if (hours > 12) {
-      hr = String(hours - 12).padStart("2", "0");
-      min = String(minutes).padStart("2", "0");
-      mer = "PM";
-    } else {
-      hr = String(hours).padStart("2", "0");
-      min = String(minutes).padStart("2", "0");
-      mer = "AM";
-    }
-
-    document.querySelector(".time").innerHTML = `${hr}:${min}${mer}`;
+    document.querySelector(".date").innerHTML =
+      `${dt.day} ${dt.month} ${dt.date}`;
   }
 
-  function date() {
-    const dt = new Date();
-
-    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    const months = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
-
-    let day = days[dt.getDay()];
-    let month = months[dt.getMonth()];
-    let date = dt.getDate();
-
-    document.querySelector(".date").innerHTML = `${day} ${month} ${date}`;
-  }
-
-  setInterval(() => {
-    time();
-    date();
-  }, 1000);
+  updateClock(); // initial call immediately
+  setInterval(updateClock, 1000); // update every second
 }
 
 clockDateTime();
@@ -406,7 +419,7 @@ function dragSupport(dragElem, dragApp) {
     offsetX = e.clientX - dragApp.offsetLeft;
     offsetY = e.clientY - dragApp.offsetTop;
 
-    bringAppToFront(dragApp);  // ✅ Changed from cameraApp to dragApp
+    bringAppToFront(dragApp); // ✅ Changed from cameraApp to dragApp
   });
 
   document.addEventListener("mousemove", (e) => {
@@ -639,6 +652,7 @@ document.addEventListener("DOMContentLoaded", () => {
   calculatorApp();
   cameraApp();
   photosApp();
+  terminalApp();
 });
 
 function codeApplication() {
@@ -714,7 +728,8 @@ function calculatorApp() {
       calculatorApp.classList.remove("hidden");
       bringAppToFront(calculatorApp);
       isVisible = 1;
-      calcDisplay.textContent = JSON.parse(localStorage.getItem("calcResult")) || '';
+      calcDisplay.textContent =
+        JSON.parse(localStorage.getItem("calcResult")) || "";
     } else {
       calculatorApp.classList.add("hidden");
       isVisible = 0;
@@ -1040,3 +1055,208 @@ function photosApp() {
   dragSupport(dragBar2, photoApp);
 }
 
+function terminalApp() {
+  const terminalApp = document.getElementById("terminal-app");
+  const closeBtn = terminalApp.querySelector("#close");
+  const minimiseBtn = terminalApp.querySelector("#minimise");
+  const resizeBtn = terminalApp.querySelector("#resize");
+  const dragBar = terminalApp.querySelector(".c-up-nav");
+
+  const terminalWorkArea = terminalApp.querySelector(".t-workarea");
+
+  let isBig = 0;
+  let isVisible = 0;
+
+  document.querySelector("#terminal").addEventListener("click", () => {
+    if (!isVisible) {
+      terminalApp.classList.remove("hidden");
+      appResize(terminalApp);
+      bringAppToFront(terminalApp);
+      isVisible = 1;
+    } else {
+      terminalApp.classList.add("hidden");
+      isVisible = 0;
+    }
+  });
+
+  closeBtn.addEventListener("click", () => {
+    terminalApp.classList.add("hidden");
+    appResize(terminalApp);
+    isBig = 0;
+    isVisible = 0;
+  });
+
+  minimiseBtn.addEventListener("click", () => {
+    terminalApp.classList.add("hidden");
+    isVisible = 0;
+  });
+
+  resizeBtn.addEventListener("click", () => {
+    if (!isBig) {
+      appBigger(terminalApp);
+      isBig = 1;
+      terminalApp.style.fontSize = "1.1vw";
+    } else {
+      appResize(terminalApp);
+      isBig = 0;
+      terminalApp.style.fontSize = ".9vw";
+    }
+  });
+
+  dragSupport(dragBar, terminalApp);
+
+  // Initialize terminal
+  let dt = date();
+  let currTime = time();
+
+  terminalWorkArea.innerHTML = `<h5 class="text-white mb-2">Last login: ${dt.day} ${dt.month} ${dt.date} ${String(currTime.hr).padStart(2, "0")}:${String(currTime.min).padStart(2, "0")}:${String(currTime.sec).padStart(2, "0")} ${currTime.mer}</h5>`;
+
+  // Add initial input line
+  addInputLine();
+
+  let commandHistory = [];
+  const user = "simulation";
+  const host = "Users-MacBook";
+  const currentDir = "~";
+
+  // Use event delegation - single listener on the container
+  terminalWorkArea.addEventListener("keydown", (e) => {
+    if (e.target.classList.contains("terminal-input") && e.key === "Enter") {
+      e.preventDefault();
+
+      const command = e.target.value.trim();
+
+      const inputLine = e.target.closest(".input-line");
+
+      // Get prompt text
+      const promptText = inputLine.querySelector("label").textContent;
+
+      // Store command
+      if (command) {
+        commandHistory.push(command);
+      }
+
+      // Replace input line with static text (like real terminal)
+      inputLine.outerHTML = `
+  <div class="flex gap-2 items-center">
+    <span class="whitespace-nowrap text-green-400">${promptText}</span>
+    <span class="text-white">${command}</span>
+  </div>
+`;
+
+      // help command
+      if (command.toLowerCase() === "help") {
+        terminalWorkArea.innerHTML += `
+  <p class="response text-white mb-1">Available commands:</p>
+  <ul class="response text-gray-300 mb-2 pl-4">
+    <li><span class="text-blue-400">help</span> - Show available commands</li>
+    <li><span class="text-blue-400">date</span> - Display current date and time</li>
+    <li><span class="text-blue-400">clear</span> - Clear terminal screen</li>
+    <li><span class="text-blue-400">about</span> - System information</li>
+    <li><span class="text-blue-400">echo</span> - Print text</li>
+    <li><span class="text-blue-400">whoami</span> - Show current user</li>
+    <li><span class="text-blue-400">hostname</span> - Show hostname</li>
+    <li><span class="text-blue-400">pwd</span> - Show current directory</li>
+    <li><span class="text-blue-400">history</span> - Show command history</li>
+  </ul>`;
+      }
+      // date command
+      else if (command.toLowerCase() === "date") {
+        const dt = date();
+        const currTime = time();
+        terminalWorkArea.innerHTML += `<p class="response text-white mb-2">${dt.day} ${dt.month} ${dt.date} ${String(currTime.hr).padStart(2, "0")}:${String(currTime.min).padStart(2, "0")}:${String(currTime.sec).padStart(2, "0")} ${currTime.mer}</p>`;
+      }
+      // clear
+      else if (command.toLowerCase() === "clear") {
+        terminalWorkArea.innerHTML = "";
+      }
+      // about
+      else if (command.toLowerCase() === "about") {
+        terminalWorkArea.innerHTML += `
+        <p class="response text-white mb-1">Hi, this is macOS Simulation Terminal v1.0</p>
+        <p class="response text-gray-400 mb-2">Built in vanilla JavaScript</p>`;
+      }
+      // echo
+      else if (command.startsWith("echo ")) {
+        const text = command.slice(5);
+        terminalWorkArea.innerHTML += `<p class="response text-white mb-2">${text}</p>`;
+      }
+      // whoami
+      else if (command.toLowerCase() === "whoami") {
+        terminalWorkArea.innerHTML += `<p class="response text-white mb-2">${user}</p>`;
+      }
+      // hostname
+      else if (command.toLowerCase() === "hostname") {
+        terminalWorkArea.innerHTML += `<p class="response text-white mb-2">${host}</p>`;
+      }
+
+      // pwd
+      else if (command.toLowerCase() === "pwd") {
+        terminalWorkArea.innerHTML += `<p class="response text-white mb-2">/${currentDir}</p>`;
+      }
+      //history
+      else if (command.toLowerCase() === "history") {
+        if (commandHistory.length === 0) {
+          terminalWorkArea.innerHTML += `<p class="response text-gray-400 mb-2">No history</p>`;
+        } else {
+          const historyList = commandHistory
+            .map(
+              (cmd) =>
+                `<p class="response text-blue-400">&nbsp;&nbsp; ${cmd}</p>`,
+            )
+            .join("");
+
+          terminalWorkArea.innerHTML += `<div class="mb-2">${historyList}</div>`;
+        }
+      }
+      // error
+      else if (command) {
+        terminalWorkArea.innerHTML += `<p class="response text-red-400 mb-2">zsh: command not found: ${command}</p>`;
+      }
+
+      // Add new input line and focus it
+      addInputLine();
+
+      // Scroll to bottom
+      terminalWorkArea.scrollTop = terminalWorkArea.scrollHeight - 10;
+    }
+  });
+
+  // Bring to front when clicked
+  terminalApp.addEventListener("click", () => {
+    bringAppToFront(terminalApp);
+  });
+
+  terminalWorkArea.addEventListener("click", (e) => {
+    // If user clicks directly on input, let default behavior happen
+    if (e.target.classList.contains("terminal-input")) return;
+
+    // Find the last input field
+    const lastInput = terminalWorkArea.querySelector(
+      ".input-line:last-child .terminal-input",
+    );
+
+    if (lastInput) {
+      lastInput.focus();
+    }
+  });
+
+  // Helper function to add input line
+  function addInputLine() {
+    const inputLineHTML = `
+      <div class="input-line flex gap-2 items-center">
+        <label class="whitespace-nowrap text-green-400">simulation@Users-MacBook ~ %</label>
+        <input type="text" class="terminal-input bg-transparent outline-none text-white flex-1" autocomplete="off" spellcheck="false" />
+      </div>`;
+
+    terminalWorkArea.insertAdjacentHTML("beforeend", inputLineHTML);
+
+    // Focus the newly added input
+    const newInput = terminalWorkArea.querySelector(
+      ".input-line:last-child .terminal-input",
+    );
+    if (newInput) {
+      newInput.focus();
+    }
+  }
+}
