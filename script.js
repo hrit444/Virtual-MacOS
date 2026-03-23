@@ -406,7 +406,7 @@ function dragSupport(dragElem, dragApp) {
     offsetX = e.clientX - dragApp.offsetLeft;
     offsetY = e.clientY - dragApp.offsetTop;
 
-      bringAppToFront(cameraApp)
+    bringAppToFront(dragApp);  // ✅ Changed from cameraApp to dragApp
   });
 
   document.addEventListener("mousemove", (e) => {
@@ -464,6 +464,10 @@ function finderApplication() {
   let isVisible = false;
   let isMinimized = false;
 
+  finderApp.addEventListener("click", () => {
+    bringAppToFront(finderApp);
+  });
+
   function finderResize() {
     appResize(finderApp);
     finderApp.querySelector(".left").style.width = "23%";
@@ -488,21 +492,21 @@ function finderApplication() {
     }
     isBig = !isBig;
     isMinimized = false;
-    updateDockState();
+    // updateDockState();
   });
 
-  function toggleFinder() {
+  function toggleApp(app) {
     if (isMinimized || !isVisible) {
-      finderApp.classList.remove("hidden");
+      app.classList.remove("hidden");
       isVisible = true;
       isMinimized = false;
     } else {
-      finderApp.classList.add("hidden");
+      app.classList.add("hidden");
       isVisible = false;
       isMinimized = true;
     }
 
-    updateDockState();
+    // updateDockState();
   }
 
   closeBtn.addEventListener("click", () => {
@@ -511,19 +515,25 @@ function finderApplication() {
     isMinimized = false;
     finderResize(); // Reset to normal size
     isBig = false;
-    updateDockState();
+    // updateDockState();
   });
 
   minimiseBtn.addEventListener("click", () => {
-    toggleFinder();
+    toggleApp(finderApp);
   });
 
-  const finderDockIcon = document.getElementById("finder");
-  if (finderDockIcon) {
-    finderDockIcon.addEventListener("click", () => {
-      toggleFinder();
-    });
-  }
+  document.querySelector("#finder").addEventListener("click", () => {
+    if (!isVisible) {
+      finderApp.classList.remove("hidden");
+      bringAppToFront(finderApp);
+      isVisible = 1;
+    } else {
+      finderApp.classList.add("hidden");
+      isVisible = 0;
+    }
+
+    // updateDockState();
+  });
 
   // Drag support
   const dragBar1 = finderApp.querySelector(".right nav");
@@ -531,12 +541,6 @@ function finderApplication() {
 
   dragSupport(dragBar1, finderApp);
   dragSupport(dragBar2, finderApp);
-
-  // Don't show on load
-  finderApp.classList.add("hidden");
-  isVisible = false;
-  isMinimized = false;
-  updateDockState();
 }
 
 function dock() {
@@ -614,9 +618,8 @@ function dock() {
   applyDragListeners();
 }
 
-function updateDockState() {
-  const dock = document.getElementById("dock");
-  const app = document.getElementById("0");
+function updateDockState(app) {
+  const dock = document.getElementById(".dock");
   const isVisible = !app.classList.contains("hidden");
   const isFullscreen = app.style.height === "100%";
 
@@ -630,11 +633,12 @@ function updateDockState() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  dock();
   finderApplication();
   codeApplication();
+  calculatorApp();
   cameraApp();
-
-  dock();
+  photosApp();
 });
 
 function codeApplication() {
@@ -651,12 +655,10 @@ function codeApplication() {
     if (!isVisible) {
       codeApp.classList.remove("hidden");
       appResize(codeApp);
-      isVisible = 1;
     } else {
       codeApp.classList.add("hidden");
-      isVisible = 0;
     }
-    // isVisible = ;
+    isVisible = !isVisible;
   });
 
   closeBtn.addEventListener("click", () => {
@@ -684,17 +686,104 @@ function codeApplication() {
   dragSupport(dragBar, codeApp);
 }
 
+function calculatorApp() {
+  const calculatorApp = document.querySelector("#calculatorApp");
+  const closeBtn = document.querySelector("#calculatorApp #close");
+  const minimiseBtn = document.querySelector("#calculatorApp #minimise");
+  const dragBar = document.querySelector("#calculatorApp .c-up-nav");
+  const calcDisplay = document.querySelector("#calculatorApp .calcdisplay");
+  const calcBtn = document.querySelector("#calculatorApp .calcbuttons");
+
+  let isVisible = 0;
+
+  function formatNumber(num) {
+    if (isNaN(num) || !isFinite(num)) return "Error";
+
+    const numValue = parseFloat(num);
+
+    if (Number.isInteger(numValue)) {
+      return numValue.toString();
+    }
+
+    const rounded = Math.round(numValue * 1000) / 1000;
+    return rounded.toString();
+  }
+
+  document.querySelector("#calculator").addEventListener("click", () => {
+    if (!isVisible) {
+      calculatorApp.classList.remove("hidden");
+      bringAppToFront(calculatorApp);
+      isVisible = 1;
+      calcDisplay.textContent = JSON.parse(localStorage.getItem("calcResult")) || '';
+    } else {
+      calculatorApp.classList.add("hidden");
+      isVisible = 0;
+    }
+  });
+
+  closeBtn.addEventListener("click", () => {
+    calculatorApp.classList.add("hidden");
+    calcDisplay.textContent = "";
+    isVisible = 0;
+  });
+
+  minimiseBtn.addEventListener("click", () => {
+    calculatorApp.classList.add("hidden");
+    isVisible = 0;
+    // updateDockState();
+  });
+
+  calcBtn.addEventListener("click", (e) => {
+    const button = e.target.closest("button");
+    if (!button) return;
+
+    const value = button.innerText.trim();
+
+    if (button.querySelector("i")) {
+      // Delete button
+      calcDisplay.textContent = calcDisplay.textContent.slice(0, -1);
+    } else if (value === "C") {
+      calcDisplay.textContent = "";
+    } else if (value === "=") {
+      try {
+        let expression = calcDisplay.textContent
+          .replace(/×/g, "*")
+          .replace(/÷/g, "/");
+
+        const result = eval(expression);
+        calcDisplay.textContent = formatNumber(result);
+      } catch {
+        calcDisplay.textContent = "Error";
+      }
+    } else if (value === "+/-") {
+      if (calcDisplay.textContent && calcDisplay.textContent !== "Error") {
+        const num = parseFloat(calcDisplay.textContent) * -1;
+        calcDisplay.textContent = formatNumber(num);
+      }
+    } else {
+      calcDisplay.textContent += value;
+    }
+
+    localStorage.setItem("calcResult", JSON.stringify(calcDisplay.textContent));
+  });
+
+  calculatorApp.addEventListener("click", () => {
+    bringAppToFront(calculatorApp);
+  });
+
+  dragSupport(dragBar, calculatorApp);
+}
+
 function cameraApp() {
   const cameraApp = document.querySelector("#cameraApp");
   const video = document.querySelector("#cameraApp #video");
   const canvas = document.querySelector("#cameraApp #canvas");
-  // const snap = document.getElementById("snap");
+  const snap = document.getElementById("snap");
 
   const closeBtn = document.querySelector("#cameraApp #close");
   const minimiseBtn = document.querySelector("#cameraApp #minimise");
   const resizeBtn = document.querySelector("#cameraApp #resize");
   const dragBar = document.querySelector("#cameraApp .c-up-nav");
-
 
   let cameraStream = null;
 
@@ -736,7 +825,6 @@ function cameraApp() {
       stopCamera();
       isVisible = 0;
     }
-    updateDockState();
   });
 
   closeBtn.addEventListener("click", () => {
@@ -745,36 +833,210 @@ function cameraApp() {
     stopCamera();
     isBig = 0;
     isVisible = 0;
-    updateDockState();
   });
 
   minimiseBtn.addEventListener("click", () => {
     cameraApp.classList.add("hidden");
     stopCamera();
+    toggleApp(cameraApp);
     isVisible = 0;
-    updateDockState();
   });
 
   resizeBtn.addEventListener("click", () => {
     if (!isBig) {
       appBigger(cameraApp);
+      cameraApp
+        .querySelector(".capture-overlay")
+        .classList.add("camera-capture-in-big-screen");
       isBig = 1;
     } else {
       appResize(cameraApp);
+      cameraApp
+        .querySelector(".capture-overlay")
+        .classList.remove("camera-capture-in-big-screen");
       isBig = 0;
     }
-    updateDockState();
   });
 
   dragSupport(dragBar, cameraApp);
 
-  // snap.addEventListener("click", () => {
-  //   const context = canvas.getContext("2d");
-  //   canvas.width = video.videoWidth;
-  //   canvas.height = video.videoHeight;
-  //   context.drawImage(video, 0, 0, canvas.width, canvas.height);
-  //   const imageData = canvas.toDataURL("image/png");
-  //   downloadLink.href = imageData;
-  //   downloadLink.classList.remove("hidden");
-  // });
+  function capturePhoto() {
+    const ctx = canvas.getContext("2d");
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    const imageData = canvas.toDataURL("image/png");
+
+    saveToLocalStorage(imageData);
+    flashEffect();
+  }
+
+  function saveToLocalStorage(image) {
+    let photos = JSON.parse(localStorage.getItem("cameraPhotos")) || [];
+
+    photos.push({
+      id: Date.now(),
+      src: image,
+    });
+
+    if (photos.length > 7) {
+      alert("You can only save up to 7 photos.");
+    }
+
+    localStorage.setItem("cameraPhotos", JSON.stringify(photos));
+
+    // ✅ Dispatch custom event to notify other parts of the app
+    window.dispatchEvent(new CustomEvent("photosCaptured"));
+  }
+
+  snap.addEventListener("click", capturePhoto);
+
+  function flashEffect() {
+    const flash = document.createElement("div");
+    flash.className =
+      "absolute inset-0 bg-white opacity-80 animate-ping pointer-events-none";
+    cameraApp.appendChild(flash);
+
+    setTimeout(() => flash.remove(), 200);
+  }
 }
+
+function photosApp() {
+  const photoApp = document.getElementById("photos-app");
+  const workarea = photoApp.querySelector(".gallery-workarea");
+
+  const closeBtn = photoApp.querySelector("#close");
+  const minimiseBtn = photoApp.querySelector("#minimise");
+  const resizeBtn = photoApp.querySelector("#resize");
+
+  const dragBar1 = photoApp.querySelector(".left .navigation");
+  const dragBar2 = photoApp.querySelector(".right nav");
+
+  let isBig = 0;
+  let isVisible = 0;
+
+  function loadPhotos() {
+    photos = JSON.parse(localStorage.getItem("cameraPhotos")) || [];
+
+    workarea.innerHTML = "";
+
+    if (photos.length === 0) {
+      workarea.innerHTML = `
+        <p class="text-gray-400 col-span-3 text-center mt-10">
+          No photos yet 📸
+        </p>`;
+      return;
+    }
+
+    photos
+      .slice()
+      .reverse()
+      .forEach((photo) => {
+        const div = document.createElement("div");
+
+        div.className = isBig ? "big-gallery" : "small-gallery";
+
+        div.innerHTML = `
+        <img src="${photo.src}">
+        <h6>${photo.id}</h6>
+      `;
+
+        // 🔍 PREVIEW
+        div.addEventListener("click", () => {
+          const preview = document.createElement("div");
+          preview.className =
+            "fixed inset-0 bg-black/90 flex items-center justify-center z-[9999]";
+
+          preview.innerHTML = `
+          <img src="${photo.src}" 
+                class="max-h-[90%] max-w-[90%] object-cover rounded-lg shadow-xl">
+        `;
+
+          preview.addEventListener("click", () => preview.remove());
+          document.body.appendChild(preview);
+        });
+
+        // 🗑️ DELETE (RIGHT CLICK)
+        div.addEventListener("contextmenu", (e) => {
+          e.preventDefault();
+
+          let photos = JSON.parse(localStorage.getItem("cameraPhotos")) || [];
+
+          photos = photos.filter((p) => p.id !== photo.id);
+
+          localStorage.setItem("cameraPhotos", JSON.stringify(photos));
+
+          loadPhotos();
+        });
+
+        workarea.appendChild(div);
+      });
+  }
+
+  window.addEventListener("photosCaptured", () => {
+    // Only reload if the photos app is currently visible
+    if (isVisible) {
+      loadPhotos();
+    }
+  });
+
+  // 📸 OPEN APP
+  document.querySelector("#photos").addEventListener("click", () => {
+    if (!isVisible) {
+      photoApp.classList.remove("hidden");
+      appResize(photoApp);
+      bringAppToFront(photoApp);
+      loadPhotos();
+      isVisible = 1;
+    } else {
+      photoApp.classList.add("hidden");
+      isVisible = 0;
+    }
+  });
+
+  // ❌ CLOSE
+  closeBtn.addEventListener("click", () => {
+    photoApp.classList.add("hidden");
+    appResize(photoApp);
+    isBig = 0;
+    isVisible = 0;
+  });
+
+  // ➖ MINIMISE
+  minimiseBtn.addEventListener("click", () => {
+    photoApp.classList.add("hidden");
+    toggleApp(photoApp);
+    isVisible = 0;
+  });
+
+  // 🔳 RESIZE (BIG / SMALL)
+  resizeBtn.addEventListener("click", () => {
+    if (!isBig) {
+      appBigger(photoApp);
+      isBig = 1;
+
+      photoApp.querySelector(".left").style.width = "13%";
+      photoApp.querySelector(".right").style.width = "87%";
+      photoApp.querySelector(".gallery-workarea").style.gridTemplateColumns =
+        "repeat(4, 1fr)";
+    } else {
+      appResize(photoApp);
+      isBig = 0;
+
+      photoApp.querySelector(".left").style.width = "23%";
+      photoApp.querySelector(".right").style.width = "77%";
+      photoApp.querySelector(".gallery-workarea").style.gridTemplateColumns =
+        "repeat(3, 1fr)";
+    }
+
+    loadPhotos();
+  });
+
+  // 🖱️ DRAG SUPPORT
+  dragSupport(dragBar1, photoApp);
+  dragSupport(dragBar2, photoApp);
+}
+

@@ -244,4 +244,69 @@ nav .r-nav img {
 }
 .code-app .c-down-nav #live {
   height: 1.1vw;
+}
+
+.camera-capture-in-big-screen {
+  height: 5vw;
+  width: 25vw;
+  border-radius: 1.5vw;
+  bottom: 12%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.camera-capture-in-big-screen div {
+  height: 4vw;
+  width: 4vw;
+}
+.camera-capture-in-big-screen div i {
+  font-size: 2.3vw;
+}
+
+.small-gallery {
+  cursor: pointer;
+  height: 11.5vw;
+  width: 11vw;
+  position: relative;
+}
+.small-gallery:hover img,
+.small-gallery:hover h6 {
+  scale: 105%;
+}
+.small-gallery img {
+  height: 8.5vw;
+  width: 100%;
+  -o-object-fit: cover;
+     object-fit: cover;
+  transition: all 0.3s ease;
+}
+.small-gallery h6 {
+  font-size: 0.9vw;
+  margin-top: 0.3vw;
+  color: #f0f0f0;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.big-gallery {
+  cursor: pointer;
+  height: 18vw;
+  width: 20vw;
+  position: relative;
+}
+.big-gallery:hover img h6 {
+  scale: 105%;
+}
+.big-gallery img {
+  height: 15vw;
+  width: 100%;
+  -o-object-fit: cover;
+     object-fit: cover;
+  transition: all 0.3s ease;
+}
+.big-gallery h6 {
+  font-size: 1vw;
+  margin-top: 0.5vw;
+  color: #f0f0f0;
+  text-align: center;
+  transition: all 0.3s ease;
 }/*# sourceMappingURL=style.css.map */
