@@ -723,6 +723,34 @@ function calculatorApp() {
     return rounded.toString();
   }
 
+  function processInput(value) {
+    if (value === "Backspace" || value === "Delete") {
+      calcDisplay.textContent = calcDisplay.textContent.slice(0, -1);
+    } else if (value === "c" || value === "C" || value === "Escape") {
+      calcDisplay.textContent = "";
+    } else if (value === "=" || value === "Enter") {
+      try {
+        let expression = calcDisplay.textContent
+          .replace(/×/g, "*")
+          .replace(/÷/g, "/");
+
+        const result = eval(expression);
+        calcDisplay.textContent = formatNumber(result);
+      } catch {
+        calcDisplay.textContent = "Error";
+      }
+    } else if (value === "+/-") {
+      if (calcDisplay.textContent && calcDisplay.textContent !== "Error") {
+        const num = parseFloat(calcDisplay.textContent) * -1;
+        calcDisplay.textContent = formatNumber(num);
+      }
+    } else if (["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "+", "-", "*", "/", "%", "×", "÷"].includes(value)) {
+      calcDisplay.textContent += value;
+    }
+
+    localStorage.setItem("calcResult", JSON.stringify(calcDisplay.textContent));
+  }
+
   document.querySelector("#calculator").addEventListener("click", () => {
     if (!isVisible) {
       calculatorApp.classList.remove("hidden");
@@ -745,7 +773,6 @@ function calculatorApp() {
   minimiseBtn.addEventListener("click", () => {
     calculatorApp.classList.add("hidden");
     isVisible = 0;
-    // updateDockState();
   });
 
   calcBtn.addEventListener("click", (e) => {
@@ -755,31 +782,35 @@ function calculatorApp() {
     const value = button.innerText.trim();
 
     if (button.querySelector("i")) {
-      // Delete button
-      calcDisplay.textContent = calcDisplay.textContent.slice(0, -1);
-    } else if (value === "C") {
-      calcDisplay.textContent = "";
-    } else if (value === "=") {
-      try {
-        let expression = calcDisplay.textContent
-          .replace(/×/g, "*")
-          .replace(/÷/g, "/");
-
-        const result = eval(expression);
-        calcDisplay.textContent = formatNumber(result);
-      } catch {
-        calcDisplay.textContent = "Error";
-      }
-    } else if (value === "+/-") {
-      if (calcDisplay.textContent && calcDisplay.textContent !== "Error") {
-        const num = parseFloat(calcDisplay.textContent) * -1;
-        calcDisplay.textContent = formatNumber(num);
-      }
+      processInput("Backspace");
     } else {
-      calcDisplay.textContent += value;
+      processInput(value);
     }
+  });
 
-    localStorage.setItem("calcResult", JSON.stringify(calcDisplay.textContent));
+  // Keyboard support
+  document.addEventListener("keydown", (e) => {
+    // Only process keyboard input when calculator is visible
+    if (!isVisible) return;
+
+    e.preventDefault();
+
+    const key = e.key;
+
+    // Map keyboard keys to calculator inputs
+    if (key === "Backspace" || key === "Delete") {
+      processInput("Backspace");
+    } else if (key === "Escape" || key.toLowerCase() === "c") {
+      processInput("C");
+    } else if (key === "Enter" || key === "=") {
+      processInput("=");
+    } else if (key === "*") {
+      processInput("×");
+    } else if (key === "/") {
+      processInput("÷");
+    } else if (["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "+", "-", "%"].includes(key)) {
+      processInput(key);
+    }
   });
 
   calculatorApp.addEventListener("click", () => {

@@ -20,7 +20,7 @@
         class="title h-6 w-screen bg-gray-400 flex justify-between items-center px-4 cursor-default"
       >
         <!-- Left side navigation -->
-        <div class="l-nav flex items-center gap-4">
+        <div class="l-nav flex items-center gap-4 pointer-events-none">
           <i class="ri-apple-fill"></i>
           <h3 class="folder-title text-[14px] font-bold">Finder</h3>
           <h4>File</h4>
@@ -33,13 +33,13 @@
         <!-- Right side navigation  -->
         <div class="r-nav flex items-center gap-2">
           <i id="brightness" class="ri-computer-line"></i>
-          <img class="h-[19px]" src="./assets/keyboard-brightness.png" alt="" />
-          <span class="text-[14px] flex items-center gap-1"
+          <img class="h-[19px] pointer-events-none" src="./assets/keyboard-brightness.png" alt="" />
+          <span class="text-[14px] flex items-center gap-1 pointer-events-none"
             >78%
             <img class="h-[20px] w-[22px]" src="./assets/battery.png" alt="" />
           </span>
-          <i class="ri-wifi-fill"></i>
-          <i class="ri-search-line"></i>
+          <i class="ri-wifi-fill pointer-events-none"></i>
+          <i class="ri-search-line pointer-events-none"></i>
           <button
             id="control"
             class="h-[19px] w-[20px] bg-contain bg-[url(./assets/menu.png)]"
