@@ -170,9 +170,10 @@ nav {
         font-weight: 500;
       }
     }
-
-    .display {
-      background-color: #1c1c1c;
+    .finder-workarea {
+      height: 100%;
+      width: 100%;
+      padding: 1vw;
     }
   }
 }
@@ -272,6 +273,13 @@ nav {
   img {
     height: 9vw;
     width: 14vw;
+  }
+}
+
+.Photos {
+  i {
+    font-size: 1.1vw;
+    line-height: 1.1vw;
   }
 }
 
@@ -396,3 +404,16 @@ nav {
     transition: all 0.3s ease;
   }
 }
+
+.finder-photos {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1vw;
+}
+
+.finder-recent {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1vw;
+}
+

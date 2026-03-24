@@ -286,7 +286,7 @@
       <!-- Finder Application -->
       <div
         id="0" data-app="finder"
-        class="finder-app h-2/3 w-1/2 text-white rounded-xl border border-[#515151] absolute top-[20%] left-[10%] overflow-hidden hidden cursor-default absolute flex "
+        class="finder-app h-2/3 w-1/2 hidden text-white rounded-xl border border-[#515151] absolute top-[20%] left-[10%] overflow-hidden cursor-default absolute flex "
       >
         <div class="left h-full w-[23%] p-2">
           <nav class="navigation flex gap-2 h-10 pb-2 items-center pl-3">
@@ -297,43 +297,14 @@
           <div class="dSec h-full w-full overflow-y-scroll">
             <div class="favorites">
               <h5 class="text-xs text-[#737573] px-[5px]">Favorites</h5>
-              <div class="recent common-sec">
+              <div class="folders common-sec">
                 <img src="./assets/recentFolder.png" alt="" />
-                <h4>Recent</h4>
+                <h4>Folders</h4>
               </div>
-              <div class="project common-sec">
-                <i class="ri-folder-2-line"></i>
-                <h4>Project</h4>
-              </div>
-              <div class="downloads common-sec">
-                <img src="./assets/downloadFolder.png" alt="" />
-                <h4>Downloads</h4>
-              </div>
-              <div class="iammac common-sec">
-                <i class="ri-home-4-line"></i>
-                <h4>iammac</h4>
-              </div>
-              <div class="developer common-sec">
-                <i class="ri-hammer-line rotate-40"></i>
-                <h4>Developer</h4>
-              </div>
-              <div class="desktop common-sec">
-                <img id="desk" src="./assets/desktopFolder.png" alt="" />
-                <h4>Desktop</h4>
-              </div>
-              <div class="library common-sec">
-                <i class="ri-bank-fill pr-[2px]"></i>
-                <h4>Library</h4>
-              </div>
-            </div>
-            <div class="icloud">
-              <h5 class="text-xs text-[#737573] px-[5px]">icloud</h5>
-            </div>
-            <div class="locations">
-              <h5 class="text-xs text-[#737573] px-[5px]">Locations</h5>
-            </div>
-            <div class="tags">
-              <h5 class="text-xs text-[#737573] px-[5px]">Tags</h5>
+              <div class="Photos common-sec">
+                <i class="ri-image-circle-line"></i>
+                <h4>Photos</h4>
+              </div>              
             </div>
           </div>
         </div>
@@ -342,7 +313,7 @@
             <div class="navigation h-full flex items-center gap-2">
               <i class="ri-arrow-left-wide-fill"></i>
               <i class="ri-arrow-right-wide-fill opacity-90"></i>
-              <h4 id="filename">Recents</h4>
+              <h4 id="filename">Folders</h4>
             </div>
             <div class="left h-full flex items-center gap-1">
               <div class="show flex items-center p-2 mr-3">
@@ -368,7 +339,9 @@
               
             </div>
           </nav>
-          <div class="display h-full w-full p-4"></div>
+          <div class="finder-workarea">
+
+          </div>
         </div>
       </div>
 
@@ -460,8 +433,8 @@
             <div class="favorites">
               <h5 class="text-xs text-[#737573] px-[5px]">Favorites</h5>
               <div class="recent common-sec">
-                <img src="./assets/recentFolder.png" alt="" />
-                <h4>Recent</h4>
+                <i class="ri-image-circle-line"></i>
+                <h4>Photos</h4>
               </div>
               
             </div>

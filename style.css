@@ -129,8 +129,10 @@ nav .r-nav img {
   font-size: 1vw;
   font-weight: 500;
 }
-.finder-app .right .display {
-  background-color: #1c1c1c;
+.finder-app .right .finder-workarea {
+  height: 100%;
+  width: 100%;
+  padding: 1vw;
 }
 
 .hov {
@@ -208,6 +210,11 @@ nav .r-nav img {
 .workarea img {
   height: 9vw;
   width: 14vw;
+}
+
+.Photos i {
+  font-size: 1.1vw;
+  line-height: 1.1vw;
 }
 
 .code-app i {
@@ -309,4 +316,16 @@ nav .r-nav img {
   color: #f0f0f0;
   text-align: center;
   transition: all 0.3s ease;
+}
+
+.finder-photos {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1vw;
+}
+
+.finder-recent {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1vw;
 }/*# sourceMappingURL=style.css.map */

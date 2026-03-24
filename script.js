@@ -176,9 +176,15 @@ adIcon.addEventListener("click", () => {
 
 function contextMenu() {
   let rClkWindow = document.querySelector(".right-click-window");
+  let isInsideFinder = false;
 
   document.body.addEventListener("contextmenu", (e) => {
-    e.preventDefault(); // Stop default menu
+    e.preventDefault();
+
+    // Check if right-click is inside finder app
+    const finderApp = document.getElementById("0");
+    const finderWorkarea = finderApp?.querySelector(".finder-workarea");
+    isInsideFinder = finderWorkarea?.contains(e.target) && !finderApp.classList.contains("hidden");
 
     const menuWidth = rClkWindow.offsetWidth;
     const menuHeight = rClkWindow.offsetHeight;
@@ -193,7 +199,6 @@ function contextMenu() {
 
     rClkWindow.style.top = `${y}px`;
     rClkWindow.style.left = `${x}px`;
-
     rClkWindow.style.display = "flex";
   });
 
@@ -201,10 +206,8 @@ function contextMenu() {
     rClkWindow.style.display = "none";
   });
 
-  // Prevent menu from closing when clicking inside it
-  // rClkWindow.addEventListener("click", (e) => {
-  //   e.stopPropagation();
-  // });
+  // Store context location for new folder function
+  window.finderContextActive = () => isInsideFinder;
 }
 
 contextMenu();
@@ -219,11 +222,10 @@ function newFolder() {
   let folderCount = 1;
   const createdFolders = [];
 
-  // Folder size and spacing
   const folderWidth = 80;
   const folderHeight = 100;
   const margin = 20;
-  const desktopPadding = 20; // prevent touching edges
+  const desktopPadding = 20;
 
   let zIndexCounter = 1000;
 
@@ -235,62 +237,90 @@ function newFolder() {
   });
 
   function createNewFolder() {
-    if (createdFolders.length >= maxFolderLimit) {
-      alert("You can’t create more than 84 folders on the desktop.");
+    const isInFinder = window.finderContextActive?.() || false;
+    
+    if (!isInFinder && createdFolders.length >= maxFolderLimit) {
+      alert("You can't create more than 84 folders on the desktop.");
       return;
     }
 
     const folder = document.createElement("div");
-    folder.className =
-      "folder absolute flex flex-col justify-center items-center h-20 w-16 cursor-grab";
-    folder.style.zIndex = zIndexCounter++;
-
     const name = `Untitled folder ${folderCount++}`;
 
-    folder.innerHTML = `
-      <img class="w-3/4 h-3/4" src="/folder.png" alt="" draggable="false">
-      <input
-        type="text"
-        class="text-white text-[.8vw] font-medium text-center placeholder:text-[.8vw] outline-none bg-transparent"
-        placeholder="${name}"
-        value="${name}"
-        readonly
-      />
-    `;
+    if (isInFinder) {
+      // Get finder folders from localStorage
+      let finderFolders = JSON.parse(localStorage.getItem("finderFolders")) || [];
+      
+      // Add new folder
+      finderFolders.push({
+        id: Date.now(),
+        name: name
+      });
+      
+      // Save to localStorage
+      localStorage.setItem("finderFolders", JSON.stringify(finderFolders));
 
-    document.body.appendChild(folder);
-    createdFolders.push(folder);
+      // Switch finder to folders mode and reload
+      const finderApp = document.getElementById("0");
+      const workarea = finderApp.querySelector(".finder-workarea");
+      const filenameDisplay = finderApp.querySelector("#filename");
+      
+      filenameDisplay.textContent = "folders";
+      
+      // Determine if finder is in big mode
+      const isBig = finderApp.style.height === "100%" || finderApp.classList.contains("fullscreen");
+      
+      // Reload folders view
+      loadFolders(workarea, isBig);
 
-    const input = folder.querySelector("input");
-
-    input.addEventListener("dblclick", () => {
-      input.removeAttribute("readonly");
-      input.focus();
-      input.select();
-    });
-
-    input.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        input.setAttribute("readonly", true);
-        input.blur();
-      }
-    });
-
-    const img = folder.querySelector("img");
-
-    const bringToFront = () => {
+    } else {
+      // Create folder for desktop (original behavior)
+      folder.className = "folder absolute flex flex-col justify-center items-center h-20 w-16 cursor-grab";
       folder.style.zIndex = zIndexCounter++;
-    };
-    img.addEventListener("mousedown", bringToFront);
-    folder.addEventListener("mousedown", (e) => {
-      if (e.target.tagName !== "INPUT") bringToFront();
-    });
 
-    dragSupport(img, folder);
-    dragSupport(folder, folder);
+      folder.innerHTML = `
+        <img class="w-3/4 h-3/4" src="/assets/folder.png" alt="" draggable="false">
+        <input
+          type="text"
+          class="text-white text-[.8vw] font-medium text-center placeholder:text-[.8vw] outline-none bg-transparent"
+          placeholder="${name}"
+          value="${name}"
+          readonly
+        />
+      `;
 
-    repositionFolders(); // Align folders
+      document.body.appendChild(folder);
+      createdFolders.push(folder);
+
+      const input = folder.querySelector("input");
+      input.addEventListener("dblclick", () => {
+        input.removeAttribute("readonly");
+        input.focus();
+        input.select();
+      });
+
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          input.setAttribute("readonly", true);
+          input.blur();
+        }
+      });
+
+      const img = folder.querySelector("img");
+      const bringToFront = () => {
+        folder.style.zIndex = zIndexCounter++;
+      };
+      img.addEventListener("mousedown", bringToFront);
+      folder.addEventListener("mousedown", (e) => {
+        if (e.target.tagName !== "INPUT") bringToFront();
+      });
+
+      dragSupport(img, folder);
+      dragSupport(folder, folder);
+
+      repositionFolders();
+    }
   }
 
   function repositionFolders() {
@@ -463,6 +493,97 @@ function appResize(app) {
   bringAppToFront(app);
 }
 
+// Complete loadFolders function with compact spacing
+function loadFolders(workarea, isBig) {
+  let folders = JSON.parse(localStorage.getItem("finderFolders")) || [];
+  
+  workarea.innerHTML = "";
+  workarea.className = "finder-workarea finder-folders grid p-4 overflow-auto";
+  workarea.style.gridTemplateColumns = isBig ? "repeat(10, 1fr)" : "repeat(4, 1fr)";
+  workarea.style.gap = "1rem";
+  workarea.style.alignContent = "start";
+
+  if (folders.length === 0) {
+    workarea.innerHTML = `
+      <p class="text-gray-400 col-span-full text-center mt-10">
+        No folders yet. Right-click to create one 📁
+      </p>`;
+    return;
+  }
+
+  folders.forEach((folderData) => {
+    const div = document.createElement("div");
+    div.className = "folder-item flex flex-col items-center justify-start p-2 cursor-pointer hover:bg-white/5 rounded-lg transition-colors";
+    div.style.maxWidth = "120px";
+    
+    div.innerHTML = `
+      <img class="w-14 h-14 mb-1" src="/assets/folder.png" alt="" draggable="false">
+      <input
+        type="text"
+        class="text-white text-xs font-medium text-center outline-none bg-transparent w-full px-1"
+        style="line-height: 1.2; max-width: 100%; word-break: break-word;"
+        value="${folderData.name}"
+        readonly
+      />
+    `;
+
+    const input = div.querySelector("input");
+    
+    // Double-click to rename
+    input.addEventListener("dblclick", (e) => {
+      e.stopPropagation();
+      input.removeAttribute("readonly");
+      input.focus();
+      input.select();
+    });
+
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        input.setAttribute("readonly", true);
+        input.blur();
+        
+        // Update in localStorage
+        let folders = JSON.parse(localStorage.getItem("finderFolders")) || [];
+        const folderIndex = folders.findIndex(f => f.id === folderData.id);
+        if (folderIndex !== -1) {
+          folders[folderIndex].name = input.value;
+          localStorage.setItem("finderFolders", JSON.stringify(folders));
+        }
+      }
+      
+      if (e.key === "Escape") {
+        input.value = folderData.name;
+        input.setAttribute("readonly", true);
+        input.blur();
+      }
+    });
+
+    input.addEventListener("blur", () => {
+      input.setAttribute("readonly", true);
+    });
+
+    // Right-click to delete
+    div.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      if (confirm(`Delete "${folderData.name}"?`)) {
+        let folders = JSON.parse(localStorage.getItem("finderFolders")) || [];
+        folders = folders.filter(f => f.id !== folderData.id);
+        localStorage.setItem("finderFolders", JSON.stringify(folders));
+        
+        // Determine if in big mode
+        const finderApp = document.getElementById("0");
+        const isBig = finderApp.style.height === "100%" || finderApp.classList.contains("fullscreen");
+        loadFolders(workarea, isBig);
+      }
+    });
+
+    workarea.appendChild(div);
+  });
+}
+
 function finderApplication() {
   const finderApp = document.getElementById("0");
   const dock = document.getElementById("dock");
@@ -472,10 +593,12 @@ function finderApplication() {
   const searchBar = finderApp.querySelector(".search-list");
   const searchBorder = finderApp.querySelector(".sBorder");
   const searchIcon = finderApp.querySelector(".search-icon");
+  const workarea = finderApp.querySelector(".finder-workarea");
 
   let isBig = false;
   let isVisible = false;
   let isMinimized = false;
+  let mode = "folders"; // Default mode
 
   finderApp.addEventListener("click", () => {
     bringAppToFront(finderApp);
@@ -500,12 +623,17 @@ function finderApplication() {
       searchBar.style.display = "block";
       searchBorder.style.display = "flex";
       searchIcon.style.display = "none";
+      workarea.style.gridTemplateColumns = "repeat(4, 1fr)";
     } else {
       finderResize();
+      workarea.style.gridTemplateColumns = "repeat(3, 1fr)";
     }
     isBig = !isBig;
     isMinimized = false;
-    // updateDockState();
+    
+    // Reload current mode with new size
+    if (mode === "folders") loadFolders(workarea, isBig);
+    else if (mode === "photos") loadPhotos(workarea, isBig);
   });
 
   function toggleApp(app) {
@@ -518,17 +646,14 @@ function finderApplication() {
       isVisible = false;
       isMinimized = true;
     }
-
-    // updateDockState();
   }
 
   closeBtn.addEventListener("click", () => {
     finderApp.classList.add("hidden");
     isVisible = false;
     isMinimized = false;
-    finderResize(); // Reset to normal size
+    finderResize();
     isBig = false;
-    // updateDockState();
   });
 
   minimiseBtn.addEventListener("click", () => {
@@ -539,21 +664,46 @@ function finderApplication() {
     if (!isVisible) {
       finderApp.classList.remove("hidden");
       bringAppToFront(finderApp);
-      isVisible = 1;
+      
+      // Load the current mode
+      if (mode === "photos") {
+        loadPhotos(workarea, isBig);
+      } else if (mode === "folders") {
+        loadFolders(workarea, isBig);
+      }
+      
+      isVisible = true;
     } else {
       finderApp.classList.add("hidden");
-      isVisible = 0;
+      isVisible = false;
     }
-
-    // updateDockState();
   });
 
-  // Drag support
-  const dragBar1 = finderApp.querySelector(".right nav");
-  const dragBar2 = finderApp.querySelector(".left nav");
+  function dragFinder() {
+    const dragBar1 = finderApp.querySelector(".right nav");
+    const dragBar2 = finderApp.querySelector(".left nav");
 
-  dragSupport(dragBar1, finderApp);
-  dragSupport(dragBar2, finderApp);
+    dragSupport(dragBar1, finderApp);
+    dragSupport(dragBar2, finderApp);
+  }
+
+  dragFinder();
+
+  finderApp.querySelector(".favorites .Photos").addEventListener("click", () => {
+    mode = "photos";
+    workarea.className = "finder-workarea finder-photos grid gap-4 p-4 overflow-auto";
+    workarea.style.gridTemplateColumns = isBig ? "repeat(4, 1fr)" : "repeat(3, 1fr)";
+    finderApp.querySelector("#filename").textContent = mode;
+    loadPhotos(workarea, isBig);
+  });
+  
+  finderApp.querySelector(".favorites .folders").addEventListener("click", () => {
+    mode = "folders";
+    workarea.className = "finder-workarea finder-folders grid gap-4 p-4 overflow-auto";
+    workarea.style.gridTemplateColumns = isBig ? "repeat(4, 1fr)" : "repeat(3, 1fr)";
+    finderApp.querySelector("#filename").textContent = mode;
+    loadFolders(workarea, isBig);
+  });
 }
 
 function dock() {
@@ -744,7 +894,28 @@ function calculatorApp() {
         const num = parseFloat(calcDisplay.textContent) * -1;
         calcDisplay.textContent = formatNumber(num);
       }
-    } else if (["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "+", "-", "*", "/", "%", "×", "÷"].includes(value)) {
+    } else if (
+      [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        ".",
+        "+",
+        "-",
+        "*",
+        "/",
+        "%",
+        "×",
+        "÷",
+      ].includes(value)
+    ) {
       calcDisplay.textContent += value;
     }
 
@@ -808,7 +979,24 @@ function calculatorApp() {
       processInput("×");
     } else if (key === "/") {
       processInput("÷");
-    } else if (["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "+", "-", "%"].includes(key)) {
+    } else if (
+      [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        ".",
+        "+",
+        "-",
+        "%",
+      ].includes(key)
+    ) {
       processInput(key);
     }
   });
@@ -950,6 +1138,64 @@ function cameraApp() {
   }
 }
 
+function loadPhotos(workarea, isBig) {
+  let photos = JSON.parse(localStorage.getItem("cameraPhotos")) || [];
+
+  workarea.innerHTML = "";
+
+  if (photos.length === 0) {
+    workarea.innerHTML = `
+        <p class="text-gray-400 col-span-3 text-center mt-10">
+          No photos yet 📸
+        </p>`;
+    return;
+  }
+
+  photos
+    .slice()
+    .reverse()
+    .forEach((photo) => {
+      const div = document.createElement("div");
+
+      div.className = isBig ? "big-gallery" : "small-gallery";
+
+      div.innerHTML = `
+        <img src="${photo.src}">
+        <h6>${photo.id}</h6>
+      `;
+
+      // 🔍 PREVIEW
+      div.addEventListener("click", () => {
+        const preview = document.createElement("div");
+        preview.className =
+          "fixed inset-0 bg-black/90 flex items-center justify-center z-[9999]";
+
+        preview.innerHTML = `
+          <img src="${photo.src}" 
+                class="max-h-[90%] max-w-[90%] object-cover rounded-lg shadow-xl">
+        `;
+
+        preview.addEventListener("click", () => preview.remove());
+        document.body.appendChild(preview);
+      });
+
+      // 🗑️ DELETE (RIGHT CLICK)
+      div.addEventListener("contextmenu", (e) => {
+        e.preventDefault();
+
+        let photos = JSON.parse(localStorage.getItem("cameraPhotos")) || [];
+
+        photos = photos.filter((p) => p.id !== photo.id);
+
+        localStorage.setItem("cameraPhotos", JSON.stringify(photos));
+
+        loadPhotos(workarea, isBig);
+      });
+
+      workarea.appendChild(div);
+    });
+}
+
 function photosApp() {
   const photoApp = document.getElementById("photos-app");
   const workarea = photoApp.querySelector(".gallery-workarea");
@@ -964,68 +1210,10 @@ function photosApp() {
   let isBig = 0;
   let isVisible = 0;
 
-  function loadPhotos() {
-    photos = JSON.parse(localStorage.getItem("cameraPhotos")) || [];
-
-    workarea.innerHTML = "";
-
-    if (photos.length === 0) {
-      workarea.innerHTML = `
-        <p class="text-gray-400 col-span-3 text-center mt-10">
-          No photos yet 📸
-        </p>`;
-      return;
-    }
-
-    photos
-      .slice()
-      .reverse()
-      .forEach((photo) => {
-        const div = document.createElement("div");
-
-        div.className = isBig ? "big-gallery" : "small-gallery";
-
-        div.innerHTML = `
-        <img src="${photo.src}">
-        <h6>${photo.id}</h6>
-      `;
-
-        // 🔍 PREVIEW
-        div.addEventListener("click", () => {
-          const preview = document.createElement("div");
-          preview.className =
-            "fixed inset-0 bg-black/90 flex items-center justify-center z-[9999]";
-
-          preview.innerHTML = `
-          <img src="${photo.src}" 
-                class="max-h-[90%] max-w-[90%] object-cover rounded-lg shadow-xl">
-        `;
-
-          preview.addEventListener("click", () => preview.remove());
-          document.body.appendChild(preview);
-        });
-
-        // 🗑️ DELETE (RIGHT CLICK)
-        div.addEventListener("contextmenu", (e) => {
-          e.preventDefault();
-
-          let photos = JSON.parse(localStorage.getItem("cameraPhotos")) || [];
-
-          photos = photos.filter((p) => p.id !== photo.id);
-
-          localStorage.setItem("cameraPhotos", JSON.stringify(photos));
-
-          loadPhotos();
-        });
-
-        workarea.appendChild(div);
-      });
-  }
-
   window.addEventListener("photosCaptured", () => {
     // Only reload if the photos app is currently visible
     if (isVisible) {
-      loadPhotos();
+      loadPhotos(workarea, isBig);
     }
   });
 
@@ -1035,7 +1223,7 @@ function photosApp() {
       photoApp.classList.remove("hidden");
       appResize(photoApp);
       bringAppToFront(photoApp);
-      loadPhotos();
+      loadPhotos(workarea, isBig);
       isVisible = 1;
     } else {
       photoApp.classList.add("hidden");
@@ -1078,7 +1266,7 @@ function photosApp() {
         "repeat(3, 1fr)";
     }
 
-    loadPhotos();
+    loadPhotos(workarea, isBig);
   });
 
   // 🖱️ DRAG SUPPORT
