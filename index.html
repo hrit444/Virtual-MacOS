@@ -2,9 +2,8 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="https://www.apple.com/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Apple</title>
+    <title>OS simulation</title>
     <link rel="stylesheet" href="style.css" />
 
     <link
@@ -454,8 +453,6 @@
         </div>
       </div>
 
-      <!-- Setting Application -->
-
       <!-- Terminal Application -->
        <div
         id="terminal-app" data-app="terminal"
@@ -544,6 +541,46 @@
           
         </div>
       </div>
+
+      <!-- Setting Application -->
+
+      <div
+        id="settings-app"
+        class="settings-app hidden bg-[#1c1c1cf4] h-2/3 w-1/2 text-white rounded-xl border border-[#515151] absolute top-[20%] left-[10%] overflow-hidden cursor-default absolute flex "
+      >
+        <div class="left h-full w-[23%] p-2 bg-[#46464a74]">
+          <nav class="navigation flex gap-2 h-10 pb-2 items-center pl-3">
+            <div id="close" class="bg-[#FE5F58] h-3 w-3 rounded-full"></div>
+            <div id="minimise" class="bg-[#FEBC2E] h-3 w-3 rounded-full"></div>
+            <div class="bg-gray-500 h-3 w-3 rounded-full"></div>
+          </nav>
+          <div class="dSec h-full w-full overflow-y-scroll">
+            <div class="about common-sec">
+              <i class="ri-information-line"></i>
+              <h4>About</h4>
+            </div>
+            <div class="system-guide common-sec">
+              <i class="ri-settings-5-line"></i>
+              <h4>System Guide</h4>
+            </div>     
+            <div class="socials common-sec">
+              <i class="ri-links-line"></i>
+              <h4>Socials</h4>
+            </div>     
+          </div>
+        </div>
+        <div class="right h-full w-[77%] flex flex-col">
+          <nav class="flex h-10 w-full bg-[#3B3B3B] flex p-4  py-5.5 items-center justify-between">
+            <div class="navigation h-full flex items-center gap-2">
+              <h5>Settings</h5>
+              <h4 id="filename"> > About</h4>
+            </div>
+          </nav>
+          <div class="settings-workarea py-4 px-3  overflow-y-scroll">
+            
+          </div>
+        </div>
+      </div>
       
       <!-- Dock area -->
       <div
@@ -596,7 +633,7 @@
             alt="Terminal"
           />
         </button>
-        <button draggable="true" class="dock-icon" id="setting">
+        <button draggable="true" class="dock-icon" id="settings">
           <img
             class="rounded-md h-12 hov"
             src="./assets/doc icon/setting.png"

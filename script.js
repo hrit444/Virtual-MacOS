@@ -184,7 +184,9 @@ function contextMenu() {
     // Check if right-click is inside finder app
     const finderApp = document.getElementById("0");
     const finderWorkarea = finderApp?.querySelector(".finder-workarea");
-    isInsideFinder = finderWorkarea?.contains(e.target) && !finderApp.classList.contains("hidden");
+    isInsideFinder =
+      finderWorkarea?.contains(e.target) &&
+      !finderApp.classList.contains("hidden");
 
     const menuWidth = rClkWindow.offsetWidth;
     const menuHeight = rClkWindow.offsetHeight;
@@ -238,7 +240,7 @@ function newFolder() {
 
   function createNewFolder() {
     const isInFinder = window.finderContextActive?.() || false;
-    
+
     if (!isInFinder && createdFolders.length >= maxFolderLimit) {
       alert("You can't create more than 84 folders on the desktop.");
       return;
@@ -249,14 +251,15 @@ function newFolder() {
 
     if (isInFinder) {
       // Get finder folders from localStorage
-      let finderFolders = JSON.parse(localStorage.getItem("finderFolders")) || [];
-      
+      let finderFolders =
+        JSON.parse(localStorage.getItem("finderFolders")) || [];
+
       // Add new folder
       finderFolders.push({
         id: Date.now(),
-        name: name
+        name: name,
       });
-      
+
       // Save to localStorage
       localStorage.setItem("finderFolders", JSON.stringify(finderFolders));
 
@@ -264,18 +267,20 @@ function newFolder() {
       const finderApp = document.getElementById("0");
       const workarea = finderApp.querySelector(".finder-workarea");
       const filenameDisplay = finderApp.querySelector("#filename");
-      
+
       filenameDisplay.textContent = "folders";
-      
+
       // Determine if finder is in big mode
-      const isBig = finderApp.style.height === "100%" || finderApp.classList.contains("fullscreen");
-      
+      const isBig =
+        finderApp.style.height === "100%" ||
+        finderApp.classList.contains("fullscreen");
+
       // Reload folders view
       loadFolders(workarea, isBig);
-
     } else {
       // Create folder for desktop (original behavior)
-      folder.className = "folder absolute flex flex-col justify-center items-center h-20 w-16 cursor-grab";
+      folder.className =
+        "folder absolute flex flex-col justify-center items-center h-20 w-16 cursor-grab";
       folder.style.zIndex = zIndexCounter++;
 
       folder.innerHTML = `
@@ -493,13 +498,14 @@ function appResize(app) {
   bringAppToFront(app);
 }
 
-// Complete loadFolders function with compact spacing
 function loadFolders(workarea, isBig) {
   let folders = JSON.parse(localStorage.getItem("finderFolders")) || [];
-  
+
   workarea.innerHTML = "";
   workarea.className = "finder-workarea finder-folders grid p-4 overflow-auto";
-  workarea.style.gridTemplateColumns = isBig ? "repeat(10, 1fr)" : "repeat(4, 1fr)";
+  workarea.style.gridTemplateColumns = isBig
+    ? "repeat(10, 1fr)"
+    : "repeat(4, 1fr)";
   workarea.style.gap = "1rem";
   workarea.style.alignContent = "start";
 
@@ -513,9 +519,10 @@ function loadFolders(workarea, isBig) {
 
   folders.forEach((folderData) => {
     const div = document.createElement("div");
-    div.className = "folder-item flex flex-col items-center justify-start p-2 cursor-pointer hover:bg-white/5 rounded-lg transition-colors";
+    div.className =
+      "folder-item flex flex-col items-center justify-start p-2 cursor-pointer hover:bg-white/5 rounded-lg transition-colors";
     div.style.maxWidth = "120px";
-    
+
     div.innerHTML = `
       <img class="w-14 h-14 mb-1" src="/assets/folder.png" alt="" draggable="false">
       <input
@@ -528,7 +535,7 @@ function loadFolders(workarea, isBig) {
     `;
 
     const input = div.querySelector("input");
-    
+
     // Double-click to rename
     input.addEventListener("dblclick", (e) => {
       e.stopPropagation();
@@ -542,16 +549,16 @@ function loadFolders(workarea, isBig) {
         e.preventDefault();
         input.setAttribute("readonly", true);
         input.blur();
-        
+
         // Update in localStorage
         let folders = JSON.parse(localStorage.getItem("finderFolders")) || [];
-        const folderIndex = folders.findIndex(f => f.id === folderData.id);
+        const folderIndex = folders.findIndex((f) => f.id === folderData.id);
         if (folderIndex !== -1) {
           folders[folderIndex].name = input.value;
           localStorage.setItem("finderFolders", JSON.stringify(folders));
         }
       }
-      
+
       if (e.key === "Escape") {
         input.value = folderData.name;
         input.setAttribute("readonly", true);
@@ -567,15 +574,17 @@ function loadFolders(workarea, isBig) {
     div.addEventListener("contextmenu", (e) => {
       e.preventDefault();
       e.stopPropagation();
-      
+
       if (confirm(`Delete "${folderData.name}"?`)) {
         let folders = JSON.parse(localStorage.getItem("finderFolders")) || [];
-        folders = folders.filter(f => f.id !== folderData.id);
+        folders = folders.filter((f) => f.id !== folderData.id);
         localStorage.setItem("finderFolders", JSON.stringify(folders));
-        
+
         // Determine if in big mode
         const finderApp = document.getElementById("0");
-        const isBig = finderApp.style.height === "100%" || finderApp.classList.contains("fullscreen");
+        const isBig =
+          finderApp.style.height === "100%" ||
+          finderApp.classList.contains("fullscreen");
         loadFolders(workarea, isBig);
       }
     });
@@ -584,7 +593,7 @@ function loadFolders(workarea, isBig) {
   });
 }
 
-function finderApplication() {
+function finderApp() {
   const finderApp = document.getElementById("0");
   const dock = document.getElementById("dock");
   const closeBtn = finderApp.querySelector("#close");
@@ -630,7 +639,7 @@ function finderApplication() {
     }
     isBig = !isBig;
     isMinimized = false;
-    
+
     // Reload current mode with new size
     if (mode === "folders") loadFolders(workarea, isBig);
     else if (mode === "photos") loadPhotos(workarea, isBig);
@@ -664,14 +673,14 @@ function finderApplication() {
     if (!isVisible) {
       finderApp.classList.remove("hidden");
       bringAppToFront(finderApp);
-      
+
       // Load the current mode
       if (mode === "photos") {
         loadPhotos(workarea, isBig);
       } else if (mode === "folders") {
         loadFolders(workarea, isBig);
       }
-      
+
       isVisible = true;
     } else {
       finderApp.classList.add("hidden");
@@ -689,21 +698,31 @@ function finderApplication() {
 
   dragFinder();
 
-  finderApp.querySelector(".favorites .Photos").addEventListener("click", () => {
-    mode = "photos";
-    workarea.className = "finder-workarea finder-photos grid gap-4 p-4 overflow-auto";
-    workarea.style.gridTemplateColumns = isBig ? "repeat(4, 1fr)" : "repeat(3, 1fr)";
-    finderApp.querySelector("#filename").textContent = mode;
-    loadPhotos(workarea, isBig);
-  });
-  
-  finderApp.querySelector(".favorites .folders").addEventListener("click", () => {
-    mode = "folders";
-    workarea.className = "finder-workarea finder-folders grid gap-4 p-4 overflow-auto";
-    workarea.style.gridTemplateColumns = isBig ? "repeat(4, 1fr)" : "repeat(3, 1fr)";
-    finderApp.querySelector("#filename").textContent = mode;
-    loadFolders(workarea, isBig);
-  });
+  finderApp
+    .querySelector(".favorites .Photos")
+    .addEventListener("click", () => {
+      mode = "photos";
+      workarea.className =
+        "finder-workarea finder-photos grid gap-4 p-4 overflow-auto";
+      workarea.style.gridTemplateColumns = isBig
+        ? "repeat(4, 1fr)"
+        : "repeat(3, 1fr)";
+      finderApp.querySelector("#filename").textContent = mode;
+      loadPhotos(workarea, isBig);
+    });
+
+  finderApp
+    .querySelector(".favorites .folders")
+    .addEventListener("click", () => {
+      mode = "folders";
+      workarea.className =
+        "finder-workarea finder-folders grid gap-4 p-4 overflow-auto";
+      workarea.style.gridTemplateColumns = isBig
+        ? "repeat(4, 1fr)"
+        : "repeat(3, 1fr)";
+      finderApp.querySelector("#filename").textContent = mode;
+      loadFolders(workarea, isBig);
+    });
 }
 
 function dock() {
@@ -796,16 +815,17 @@ function updateDockState(app) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  dock();
-  finderApplication();
-  codeApplication();
-  calculatorApp();
-  cameraApp();
-  photosApp();
-  terminalApp();
+  dock()
+  finderApp()
+  codeApp()
+  calculatorApp()
+  cameraApp()
+  photosApp()
+  terminalApp()
+  settingsApp()
 });
 
-function codeApplication() {
+function codeApp() {
   const codeApp = document.getElementById("1");
   const closeBtn = codeApp.querySelector("#close");
   const minimiseBtn = codeApp.querySelector("#minimise");
@@ -1478,4 +1498,175 @@ function terminalApp() {
       newInput.focus();
     }
   }
+}
+
+function settingsApp() {
+  const settingsApp = document.getElementById("settings-app");
+  const closeBtn = settingsApp.querySelector("#close");
+  const minimiseBtn = settingsApp.querySelector("#minimise");
+  const workarea = settingsApp.querySelector(".settings-workarea");
+  const about = settingsApp.querySelector(".dSec .about");
+  const systemGuide = settingsApp.querySelector(".dSec .system-guide");
+  const socials = settingsApp.querySelector(".dSec .socials");
+
+  let isVisible = false;
+  let isMinimized = false;
+  let mode = "about";
+
+  const conn = [
+    {
+      connName: "LinkedIn",
+      link: "https://www.linkedin.com/in/hritam-samanta-57258b277/",
+      icon: '<i class="ri-linkedin-box-fill xl:text-[1.5vw] 2xl:text-[1.2vw] z-7"></i>'
+    },
+    {
+      connName: "Github",
+      link: "https://github.com/hrit444",
+      icon: '<i class="ri-github-fill xl:text-[1.5vw] 2xl:text-[1.2vw] z-7"></i>'
+    },
+
+    {
+      connName: "Instagram",
+      link: "https://www.instagram.com/hritam4862/",
+      icon: '<i class="ri-instagram-fill xl:text-[1.5vw] 2xl:text-[1.2vw] z-7"></i>'
+    },
+    {
+      connName: "Twitter",
+      link: "https://x.com/444_dead",
+      icon: '<i class="ri-twitter-x-line xl:text-[1.5vw] 2xl:text-[1.2vw] z-7"></i>'
+    },
+  ]
+
+  settingsApp.addEventListener("click", () => {
+    bringAppToFront(settingsApp);
+  });
+
+  function dragSettings() {
+    const dragBar1 = settingsApp.querySelector(".right nav");
+    const dragBar2 = settingsApp.querySelector(".left nav");
+
+    dragSupport(dragBar1, settingsApp);
+    dragSupport(dragBar2, settingsApp);
+  }
+
+  dragSettings()
+
+  function toggleApp(app) {
+    if (isMinimized || !isVisible) {
+      app.classList.remove("hidden");
+      isVisible = true;
+      isMinimized = false;
+    } else {
+      app.classList.add("hidden");
+      isVisible = false;
+      isMinimized = true;
+    }
+  }
+
+  closeBtn.addEventListener("click", () => {
+    settingsApp.classList.add("hidden");
+    isVisible = false;
+    isMinimized = false;
+    settingsResize();
+    isBig = false;
+  });
+
+  minimiseBtn.addEventListener("click", () => {
+    toggleApp(settingsApp);
+  });
+
+  function loadAbout(workarea){
+    workarea.innerHTML = `
+    <div class=" flex justify-center h-fit">
+              <img class="h-[4.1vw]" src="./assets/air-mac.png" alt="">
+            </div>
+            <div>
+              <h3 class="text-center text-[1.1vw] mt-4">MacOS Simulation</h3>
+              <h4 class="text-center text-[.95vw] opacity-75">Version 1.0.0</h4>
+            </div>
+            <div class="credits rounded-xl border border-[#515151] justify-between gap-2 bg-[#2A2B29] px-4 py-2 group transition-all duration-200 mt-[2vw]">
+              <h3 class="text-[1.1vw] group-hover:text-[1.15vw] transition-all duration-200">Credits</h3>
+              <ul class="list-disc list-inside opacity-75 mt-2 text-[.9vw] group-hover:text-[.95vw] transition-all duration-200">
+                <li>Design and Development: Hritam Samanta. <a href="https://github.com/hrit444" target="_blank" class="text-blue-400 underline">Github</a></li>
+                <li>Icons made by <a href="https://remixicon.com/" target="_blank" class="text-blue-400 hover:underline">remixicon</a>, <a href="https://www.flaticon.com/" target="_blank" class="text-blue-400 hover:underline">flaticon</a>, <a href="https://macosicons.com/" target="_blank" class="text-blue-400 hover:underline">macosicons</a>.</li>
+                <li>Special thanks to the <a href="https://sheryians.com/" target="_blank" class="text-blue-400 hover:underline">Sheryians</a> community for inspiration</li>
+              </ul>
+            </div>
+      `;
+  }
+
+  function loadSystemGuide(workarea){
+    workarea.innerHTML = `
+      <h2 class="text-2xl font-bold mb-4">System Guide</h2>
+      <p class="text-gray-300 mb-2">Here's a quick guide to help you navigate and use this macOS simulation:</p>
+      <ul class="text-gray-300 mb-2 pl-4 list-disc">
+        <li><span class="text-blue-400">Opening Apps:</span> Click on the icons in the dock or the desktop to open apps. Click again to close them.</li>
+        <li><span class="text-blue-400">Moving Apps:</span> Click and drag the top navigation bar of any app to move it around the screen.</li>
+        <li><span class="text-blue-400">Resizing Apps:</span> Use the resize button (square icon) in the top left of each app to toggle between small and big sizes.</li>
+        <li><span class="text-blue-400">Minimizing Apps:</span> Click the minimize button (dash icon) to hide an app. Click its dock icon to bring it back.</li>
+        <li><span class="text-blue-400">Closing Apps:</span> Click the close button (x icon) to close an app. You can reopen it from the dock.</li>
+        <li><span class="text-blue-400">Photos App:</span> Use the camera app to take photos, which will then appear in the photos app. Right-click on a photo in the gallery to delete it.</li>
+        <li><span class="text-blue-400">Terminal App:</span> Type commands like <code>help</code>, <code>date</code>, or <code>echo Hello</code> to interact with the terminal.</li>
+      </ul>
+      <p class="text-gray-300 mb-2">Have fun exploring and simulating macOS! If you have any questions or want to contribute, check out the GitHub repository linked in the About section.</p>
+    `;
+  }
+
+function loadSocials(workarea){
+  workarea.innerHTML = `
+  <div class="p-1">
+    <h2 class="text-2xl mb-1">Wanna <span class="text-blue-400">get</span> in touch?</h2>
+    <h4 class="mb-4">Let’s build and ship something remarkable.</h4>
+    <div class="flex flex-col gap-2">
+      ${conn.map(elem => `
+        <a class="conn flex items-center rounded-xl border border-[#515151] justify-between gap-2 bg-[#2A2B29] px-4 py-2 hover:bg-[#1d79e5] hover:px-6 transition-all duration-200"
+          target="_blank"
+          href="${elem.link}"
+        >
+          <div class="flex items-center gap-2 py-1">
+            ${elem.icon}
+            <h5>${elem.connName}</h5>
+          </div>
+          <i class="ri-arrow-right-s-line"></i>
+        </a>
+      `).join("")}
+    </div>
+  <div> 
+  `;
+}
+
+  document.querySelector("#settings").addEventListener("click", () => {
+    if (!isVisible) {
+      settingsApp.classList.remove("hidden");
+      bringAppToFront(settingsApp);
+
+      if (mode === "about") {
+        loadAbout(workarea);
+      } else if (mode === "system-guide") {
+        loadSystemGuide(workarea);
+      } else if (mode === "socials") {
+        loadSocials(workarea);
+      }
+      isVisible = true;
+    } else {
+      settingsApp.classList.add("hidden");
+      isVisible = false;
+    }
+  });
+
+  about.addEventListener("click", () => {
+    mode = "about";
+    loadAbout(workarea);
+  });
+
+  systemGuide.addEventListener("click", () => {
+    mode = "system-guide";
+    loadSystemGuide(workarea);
+  });
+
+  socials.addEventListener("click", () => {
+    mode = "socials";
+    loadSocials(workarea);
+  });
+
 }
